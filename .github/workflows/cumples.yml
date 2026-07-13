@@ -1,0 +1,24 @@
+name: Cumpleaños BLOODSITAX
+
+on:
+  schedule:
+    # GitHub Actions usa UTC. 14:00 UTC = 9:00 AM en Peru (UTC-5).
+    - cron: '0 14 * * *'
+  workflow_dispatch:
+
+jobs:
+  chequear-cumples:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el repo
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Ejecutar chequeo de cumpleaños
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: node check-cumples.js
