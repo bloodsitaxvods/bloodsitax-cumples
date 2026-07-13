@@ -1,0 +1,14 @@
+[
+  {
+    "nombre": "Bloody",
+    "userId": "PEGA_AQUI_EL_ID",
+    "dia": 15,
+    "mes": 3
+  },
+  {
+    "nombre": "EjemploDos",
+    "userId": "PEGA_AQUI_EL_ID",
+    "dia": 22,
+    "mes": 11
+  }
+]
