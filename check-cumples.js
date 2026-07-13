@@ -28,7 +28,9 @@ const COLOR = 0xff007f;
 // IMPORTANTE: el link debe ser DIRECTO al archivo (terminar en .gif),
 // no el link de la pagina de Tenor. Ver el README (PARTE 6).
 const GIFS = [
-  'https://media.tenor.com/kg5nRUEChp8AAAAC/happy-birthday.gif',
+  'https://raw.githubusercontent.com/bloodsitaxvods/bloodsitax-cumples/main/gifs/cumple1.gif',
+  'https://raw.githubusercontent.com/bloodsitaxvods/bloodsitax-cumples/main/gifs/cumple2.gif',
+  'https://raw.githubusercontent.com/bloodsitaxvods/bloodsitax-cumples/main/gifs/cumple3.gif',
 ];
 
 // Zona horaria para determinar "que dia es hoy"
