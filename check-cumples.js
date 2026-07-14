@@ -3,10 +3,12 @@
 //  Corre 1 vez por dia via GitHub Actions.
 //  Lee birthdays.json, filtra los cumples de hoy (hora Peru),
 //  y postea en Discord via webhook: una mencion real que notifica
-//  + un embed con la estetica BLOODSITAX y un GIF aleatorio dentro.
+//  + un embed con la estetica BLOODSITAX y un GIF aleatorio (adjunto)
+//  al final del recuadro.
 // ============================================================
 
 const fs = require('fs');
+const path = require('path');
 
 // ============================================================
 //  CONFIGURACION - Edita solo esta seccion
@@ -24,14 +26,14 @@ const MENSAJE =
 const COLOR = 0xff007f;
 
 // -------- Lista de GIFs --------
-// El script elige UNO al azar cada vez. Pega aqui tus links.
-// Con 1 solo, siempre sale ese. Con varios, elige random.
-// IMPORTANTE: el link debe ser DIRECTO al archivo (terminar en .gif),
-// no el link de la pagina de Tenor. Ver el README (PARTE 6).
+// Son archivos DENTRO de la carpeta gifs/ del repo. El script elige UNO
+// al azar y lo SUBE como adjunto (asi Discord siempre lo muestra).
+// Para agregar mas: sube el archivo a gifs/ y agrega su nombre aqui.
+const CARPETA_GIFS = 'gifs';
 const GIFS = [
-  'https://raw.githubusercontent.com/bloodsitaxvods/bloodsitax-cumples/main/gifs/cumple1.gif',
-  'https://raw.githubusercontent.com/bloodsitaxvods/bloodsitax-cumples/main/gifs/cumple2.gif',
-  'https://raw.githubusercontent.com/bloodsitaxvods/bloodsitax-cumples/main/gifs/cumple3.gif',
+  'cumple1.gif',
+  'cumple2.gif',
+  'cumple3.gif',
 ];
 
 // Zona horaria para determinar "que dia es hoy"
@@ -78,7 +80,7 @@ console.log(
   `[cumples] Cumplen hoy: ${cumplesHoy.map((p) => p.nombre).join(', ')}`
 );
 
-// Elige un GIF al azar de la lista (o null si la lista esta vacia)
+// Elige un nombre de GIF al azar (o null si la lista esta vacia)
 function gifAleatorio() {
   if (!GIFS || GIFS.length === 0) return null;
   const i = Math.floor(Math.random() * GIFS.length);
@@ -101,33 +103,50 @@ async function enviar() {
     // La etiqueta que notifica va aparte, en el "content" (abajo).
     const descripcion = MENSAJE.replaceAll('{nombre}', persona.nombre);
 
-    // Armar el embed con estetica BLOODSITAX
+    // Elegir el GIF aleatorio y prepararlo como adjunto
+    const nombreGif = gifAleatorio();
+    let gifBuffer = null;
+    if (nombreGif) {
+      const ruta = path.join(CARPETA_GIFS, nombreGif);
+      try {
+        gifBuffer = fs.readFileSync(ruta);
+      } catch (err) {
+        console.warn(`[cumples] No se pudo leer ${ruta}: ${err.message}`);
+      }
+    }
+
+    // Armar el embed con estetica BLOODSITAX. Si hay GIF, se referencia
+    // como attachment:// para que salga DENTRO del recuadro, al final.
     const embed = {
       description: descripcion,
       color: COLOR,
     };
-
-    // Adjuntar el GIF dentro del recuadro (si hay lista)
-    const gif = gifAleatorio();
-    if (gif) {
-      embed.image = { url: gif };
+    if (gifBuffer) {
+      embed.image = { url: `attachment://${nombreGif}` };
     }
 
-    // La mencion (por ID) va en el "content", ARRIBA del recuadro, para
-    // que Discord dispare la notificacion real al usuario. Dentro del
-    // embed solo va el nombre como texto (no notifica).
+    // Construir el envio. La mencion va en "content" (arriba, notifica).
+    const payload = {
+      content: mention,
+      embeds: [embed],
+      allowed_mentions: { parse: ['users'] },
+    };
+
+    // Enviar como multipart/form-data para poder adjuntar el GIF
+    const form = new FormData();
+    form.append('payload_json', JSON.stringify(payload));
+    if (gifBuffer) {
+      const blob = new Blob([gifBuffer], { type: 'image/gif' });
+      form.append('files[0]', blob, nombreGif);
+    }
+
     const res = await fetch(WEBHOOK_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        content: mention,
-        embeds: [embed],
-        allowed_mentions: { parse: ['users'] },
-      }),
+      body: form,
     });
 
     if (res.ok) {
-      console.log(`[cumples] Felicitado: ${persona.nombre}`);
+      console.log(`[cumples] Felicitado: ${persona.nombre} (gif: ${nombreGif || 'ninguno'})`);
     } else {
       const body = await res.text();
       console.error(
