@@ -13,11 +13,12 @@ const fs = require('fs');
 // ============================================================
 
 // Mensaje que va DENTRO del recuadro.
-// Variable disponible:
-//   {mention} -> se reemplaza por la etiqueta del cumpleañero
+// Variables disponibles:
+//   {nombre}  -> se reemplaza por el nombre de la persona (birthdays.json)
+//   {mention} -> se reemplaza por la etiqueta del cumpleañero (notifica)
 // (Los caracteres estilizados, kaomojis y emojis van tal cual.)
 const MENSAJE =
-  '🎂 **𝑭𝒆𝒍𝒊𝒛 𝒄𝒖𝒎𝒑𝒍𝒆𝒂𝒏̃𝒐𝒔 🎂 ⸜(๑˙꒳˙๑)⸝  {mention}  𝑯𝑶𝒀 𝒆𝒓𝒆𝒔 𝒍𝒐 𝒎𝒂́𝒔 𝒎𝒂𝒋𝒆𝒔𝒕𝒖𝒐𝒔𝒐 𝒒𝒖𝒆 𝒗𝒆𝒓𝒂́ 𝒍𝒂 𝒄𝒂𝒔𝒂 ଘ(੭*ˊᵕˋ)੭* ੈ♡‧₊˚ 𝑷𝒖𝒆𝒅𝒆𝒔 𝒗𝒆𝒏𝒊𝒓 𝒂 𝒆𝒍𝒆𝒈𝒊𝒓 𝒍𝒂 𝒎𝒖́𝒔𝒊𝒄𝒂 𝒚 𝒑𝒂𝒔𝒂𝒓 𝒆𝒍 𝒓𝒊𝒕𝒖𝒂𝒍 𝒅𝒆 𝒄𝒖𝒎𝒑𝒍𝒆𝒂𝒏̃𝒐𝒔,  𝒓𝒆𝒄𝒖𝒆𝒓𝒅𝒂 𝒒𝒖𝒆 𝒔𝒊𝒆𝒎𝒑𝒓𝒆 𝒆𝒔𝒕𝒂𝒓𝒆𝒎𝒐𝒔 𝒑𝒂𝒓𝒂 𝒕𝒊 𝒑𝒆𝒓𝒐 𝒉𝒐𝒚 𝒆𝒔 𝒕𝒖 𝒅𝒊́𝒂 𝒆𝒔𝒑𝒆𝒄𝒊𝒂𝒍 𝒚 𝒔𝒊𝒆𝒎𝒑𝒓𝒆 𝒕𝒊𝒆𝒏𝒆 𝒒𝒖𝒆 𝒔𝒆𝒏𝒕𝒊𝒓𝒔𝒆 𝒂𝒔𝒊́ 💖₍ᐢ⑅•ᴗ•⑅ᐢ₎♡ +𝒊𝒏𝒗𝒊𝒕𝒂𝒔 𝒍𝒐𝒔 𝒕𝒂𝒄𝒐𝒔**';
+  '🎂 **𝑭𝒆𝒍𝒊𝒛 𝒄𝒖𝒎𝒑𝒍𝒆𝒂𝒏̃𝒐𝒔 {nombre}🎂 ⸜(๑˙꒳˙๑)⸝  {mention}  𝑯𝑶𝒀 𝒆𝒓𝒆𝒔 𝒍𝒐 𝒎𝒂́𝒔 𝒎𝒂𝒋𝒆𝒔𝒕𝒖𝒐𝒔𝒐 𝒒𝒖𝒆 𝒗𝒆𝒓𝒂́ 𝒍𝒂 𝒄𝒂𝒔𝒂 ଘ(੭*ˊᵕˋ)੭* ੈ♡‧₊˚ 𝑷𝒖𝒆𝒅𝒆𝒔 𝒗𝒆𝒏𝒊𝒓 𝒂 𝒆𝒍𝒆𝒈𝒊𝒓 𝒍𝒂 𝒎𝒖́𝒔𝒊𝒄𝒂 𝒚 𝒑𝒂𝒔𝒂𝒓 𝒆𝒍 𝒓𝒊𝒕𝒖𝒂𝒍 𝒅𝒆 𝒄𝒖𝒎𝒑𝒍𝒆𝒂𝒏̃𝒐𝒔,  𝒓𝒆𝒄𝒖𝒆𝒓𝒅𝒂 𝒒𝒖𝒆 𝒔𝒊𝒆𝒎𝒑𝒓𝒆 𝒆𝒔𝒕𝒂𝒓𝒆𝒎𝒐𝒔 𝒑𝒂𝒓𝒂 𝒕𝒊 𝒑𝒆𝒓𝒐 𝒉𝒐𝒚 𝒆𝒔 𝒕𝒖 𝒅𝒊́𝒂 𝒆𝒔𝒑𝒆𝒄𝒊𝒂𝒍 𝒚 𝒔𝒊𝒆𝒎𝒑𝒓𝒆 𝒕𝒊𝒆𝒏𝒆 𝒒𝒖𝒆 𝒔𝒆𝒏𝒕𝒊𝒓𝒔𝒆 𝒂𝒔𝒊́ 💖₍ᐢ⑅•ᴗ•⑅ᐢ₎♡ +𝒊𝒏𝒗𝒊𝒕𝒂𝒔 𝒍𝒐𝒔 𝒕𝒂𝒄𝒐𝒔**';
 
 // Color de la barra lateral del recuadro (neon pink BLOODSITAX #FF007F).
 const COLOR = 0xff007f;
@@ -97,7 +98,9 @@ async function enviar() {
     const mention = `<@${persona.userId}>`;
 
     // El cuerpo del embed (dentro del recuadro), con la etiqueta puesta
-    const descripcion = MENSAJE.replaceAll('{mention}', mention);
+    const descripcion = MENSAJE
+      .replaceAll('{nombre}', persona.nombre)
+      .replaceAll('{mention}', mention);
 
     // Armar el embed con estetica BLOODSITAX
     const embed = {
